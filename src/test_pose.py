@@ -8,7 +8,7 @@ except ModuleNotFoundError:
     from pose_estimation import PoseEstimator
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_VIDEO_PATH = PROJECT_ROOT / "data" / "videos" / "run_test1.mp4"
+DEFAULT_VIDEO_PATH = PROJECT_ROOT / "data" / "videos" / "run_test2.mp4"
 
 parser = argparse.ArgumentParser(description="Test pentru Pose Estimation cu MediaPipe.")
 parser.add_argument(

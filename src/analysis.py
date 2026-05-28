@@ -119,6 +119,8 @@ class RunningAnalyzer:
             "symmetry_diff_mean":      safe_mean(sym),
             "overstride_left_mean":    safe_mean(os_l),
             "overstride_right_mean":   safe_mean(os_r),
+            "step_length_mean":        safe_mean([f.step_length for f in frames]),
+            "knee_rom_proxy_mean":     safe_mean([f.knee_rom_proxy for f in frames]),
         }
 
     # ── Detecție probleme ─────────────────────────────────────────────────────

@@ -1,0 +1,19 @@
+/* Stilizare simpla pentru RunAnalyzer */
+
+.stApp {
+  background: linear-gradient(180deg, #0f1117 0%, #121826 100%);
+  color: #e6edf3;
+}
+
+h1, h2, h3 {
+  color: #f4f8ff;
+}
+
+[data-testid="stMetricValue"] {
+  color: #00c896;
+}
+
+.stButton > button {
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}

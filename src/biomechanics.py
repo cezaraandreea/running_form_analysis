@@ -1,18 +1,10 @@
 """
 src/biomechanics.py
 Calculul parametrilor biomecanici din keypoints-urile extrase.
-
-Parametri calculați:
-- unghiul genunchiului (stâng / drept)
-- unghiul trunchiului (față de verticală)
-- lungimea pasului (step length)
-- simetria pașilor
-- amplitudinea mișcării (ROM - Range of Motion)
-- unghiul cotului / balansul brațelor
 """
 
 import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional
 from src.pose_estimation import PoseFrame, Keypoint
 
@@ -88,6 +80,12 @@ class BiomechanicsFrame:
     # Simetrie (diferența stânga/dreapta pentru genunchi)
     knee_symmetry_diff: Optional[float] = None
 
+    # Lungime pas aproximată (distanța dintre glezne, normalizat)
+    step_length: Optional[float] = None
+
+    # Amplitudine instantanee genunchi (diferența dintre unghiuri, normalizat la 180)
+    knee_rom_proxy: Optional[float] = None
+
     def to_dict(self) -> dict:
         return {
             "frame_index":             self.frame_index,
@@ -101,6 +99,8 @@ class BiomechanicsFrame:
             "foot_strike_offset_right":self.foot_strike_offset_right,
             "hip_height":              self.hip_height,
             "knee_symmetry_diff":      self.knee_symmetry_diff,
+            "step_length":             self.step_length,
+            "knee_rom_proxy":          self.knee_rom_proxy,
         }
 
 
@@ -111,6 +111,9 @@ class BiomechanicsCalculator:
     Primește un PoseFrame și calculează toți parametrii biomecanici relevanți.
     """
 
+    def __init__(self, min_visibility: float = 0.2):
+        self.min_visibility = min_visibility
+
     def calculate(self, pose_frame: PoseFrame) -> BiomechanicsFrame:
         kp = pose_frame.keypoints
         bf = BiomechanicsFrame(
@@ -120,7 +123,12 @@ class BiomechanicsCalculator:
 
         # Helper local
         def get(name):
-            return kp_to_tuple(kp.get(name))
+            point = kp.get(name)
+            if point is None:
+                return None
+            if point.visibility < self.min_visibility:
+                return None
+            return kp_to_tuple(point)
 
         # ── Unghi genunchi stâng: șold → genunchi → gleznă ───────────────────
         lh = get("LEFT_HIP");    lk = get("LEFT_KNEE");  la = get("LEFT_ANKLE")
@@ -135,6 +143,7 @@ class BiomechanicsCalculator:
         # ── Simetrie genunchi ─────────────────────────────────────────────────
         if bf.knee_angle_left is not None and bf.knee_angle_right is not None:
             bf.knee_symmetry_diff = abs(bf.knee_angle_left - bf.knee_angle_right)
+            bf.knee_rom_proxy = bf.knee_symmetry_diff / 180.0
 
         # ── Unghi trunchi față de verticală: umăr mediu → șold mediu ─────────
         ls = get("LEFT_SHOULDER"); rs = get("RIGHT_SHOULDER")
@@ -160,5 +169,9 @@ class BiomechanicsCalculator:
             bf.foot_strike_offset_left  = la[0] - lh[0]   # pozitiv = piciorul în față
         if rh is not None and ra is not None:
             bf.foot_strike_offset_right = ra[0] - rh[0]
+
+        # ── Lungime pas aproximată: distanța 2D dintre glezne ────────────────
+        if la is not None and ra is not None:
+            bf.step_length = euclidean_distance(la, ra)
 
         return bf
