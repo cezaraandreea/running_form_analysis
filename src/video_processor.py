@@ -9,12 +9,42 @@ Pipeline complet de procesare video:
 
 import cv2
 import numpy as np
+import os
+import subprocess
+import tempfile
 from pathlib import Path
 from typing import Generator, Optional, Callable
 from dataclasses import dataclass
 
 from src.pose_estimation import PoseEstimator, PoseFrame
+
+
+def _reencode_h264(input_path: str, output_path: str) -> bool:
+    """
+    Re-encodează input_path la H.264/MP4 folosind ffmpeg.
+    Returnează True dacă a reușit, False dacă ffmpeg nu este disponibil sau a eșuat.
+    """
+    try:
+        result = subprocess.run(
+            [
+                "ffmpeg", "-y",
+                "-i", input_path,
+                "-vcodec", "libx264",
+                "-preset", "fast",
+                "-crf", "23",
+                "-pix_fmt", "yuv420p",   # compatibil cu toate browserele
+                "-an",                   # fără audio (nu există în videoclipul original)
+                output_path,
+            ],
+            capture_output=True,
+            timeout=600,
+        )
+        return result.returncode == 0
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return False
 from src.biomechanics import BiomechanicsCalculator, BiomechanicsFrame
+from src.gait_analysis import GaitAnalysisResult, analyze_gait_phases
+from src.analysis import RunningAnalyzer
 
 
 @dataclass
@@ -35,6 +65,8 @@ class ProcessingResult:
     pose_frames:   list[PoseFrame]
     bio_frames:    list[BiomechanicsFrame]
     detection_rate: float   # % frame-uri cu detecție reușită
+    gait_analysis:   Optional[GaitAnalysisResult] = None
+    analysis_result: Optional[dict] = None
 
 
 class VideoProcessor:
@@ -86,6 +118,8 @@ class VideoProcessor:
         self,
         video_path: str,
         progress_callback: Optional[Callable[[float], None]] = None,
+        runner_height_cm: int = 175,
+        runner_sex: str = "Masculin",
     ) -> ProcessingResult:
         """
         Procesează complet videoclipul.
@@ -137,12 +171,20 @@ class VideoProcessor:
         cap.release()
 
         detection_rate = len(pose_frames) / max(processed, 1) * 100.0
+        gait = analyze_gait_phases(pose_frames, bio_frames, fps=metadata.fps)
+        analysis_result = RunningAnalyzer().analyze_sequence(
+            bio_frames, gait,
+            runner_height_cm=runner_height_cm,
+            runner_sex=runner_sex,
+        )
 
         return ProcessingResult(
             metadata=metadata,
             pose_frames=pose_frames,
             bio_frames=bio_frames,
             detection_rate=detection_rate,
+            gait_analysis=gait,
+            analysis_result=analysis_result,
         )
 
     def generate_annotated_video(
@@ -155,17 +197,20 @@ class VideoProcessor:
     ) -> str:
         """
         Generează un videoclip nou cu scheletul și metricile desenate pe fiecare frame.
+        Scrie mai întâi cu mp4v într-un fișier temporar, apoi re-encodează la H.264
+        cu ffmpeg (necesar pentru redare directă în browser).
         Returnează calea fișierului output.
         """
-        cap      = cv2.VideoCapture(video_path)
-        meta     = self.get_metadata(video_path)
+        cap  = cv2.VideoCapture(video_path)
+        meta = self.get_metadata(video_path)
+
+        # Scriem într-un fișier temporar cu codec mp4v (OpenCV nativ)
+        tmp_fd, tmp_path = tempfile.mkstemp(suffix="_raw.mp4")
+        os.close(tmp_fd)
 
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-        writer = cv2.VideoWriter(
-            output_path, fourcc, meta.fps, (meta.width, meta.height)
-        )
+        writer = cv2.VideoWriter(tmp_path, fourcc, meta.fps, (meta.width, meta.height))
 
-        # Indexăm pose_frames după frame_index
         pose_by_idx = {pf.frame_index: pf for pf in pose_frames}
         bio_by_idx  = {bf.frame_index: bf for bf in bio_frames}
 
@@ -179,10 +224,7 @@ class VideoProcessor:
 
             pf = pose_by_idx.get(frame_idx)
             if pf is not None:
-                # Desenează scheletul
                 frame = self.pose_estimator.draw_skeleton(frame, pf)
-
-                # Overlay metrici
                 bf = bio_by_idx.get(frame_idx)
                 if bf is not None:
                     frame = self._draw_metrics_overlay(frame, bf)
@@ -196,6 +238,15 @@ class VideoProcessor:
 
         cap.release()
         writer.release()
+
+        # Re-encodare H.264 cu ffmpeg pentru redare în browser
+        if not _reencode_h264(tmp_path, output_path):
+            # ffmpeg indisponibil — servim fișierul mp4v original
+            import shutil
+            shutil.move(tmp_path, output_path)
+        else:
+            os.remove(tmp_path)
+
         return output_path
 
     def _draw_metrics_overlay(self, frame: np.ndarray, bf: BiomechanicsFrame) -> np.ndarray:

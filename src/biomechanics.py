@@ -77,7 +77,7 @@ class BiomechanicsFrame:
     # Înălțimea centrului de masă (șold mediu, normalizat)
     hip_height: Optional[float] = None
 
-    # Simetrie (diferența stânga/dreapta pentru genunchi)
+    # Diferență instantanee L-R (nu e simetrie de fază; picioarele sunt în faze diferite)
     knee_symmetry_diff: Optional[float] = None
 
     # Lungime pas aproximată (distanța dintre glezne, normalizat)
@@ -140,7 +140,7 @@ class BiomechanicsCalculator:
         if all(v is not None for v in [rh, rk, ra]):
             bf.knee_angle_right = angle_between_three_points(rh, rk, ra)
 
-        # ── Simetrie genunchi ─────────────────────────────────────────────────
+        # ── Diferență instantanee unghi genunchi L-R (per frame) ──────────────
         if bf.knee_angle_left is not None and bf.knee_angle_right is not None:
             bf.knee_symmetry_diff = abs(bf.knee_angle_left - bf.knee_angle_right)
             bf.knee_rom_proxy = bf.knee_symmetry_diff / 180.0

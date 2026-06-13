@@ -60,7 +60,10 @@ RELEVANT_LANDMARKS = {
     # Glezne
     "LEFT_ANKLE":     27,
     "RIGHT_ANKLE":    28,
-    # Picioare (vârf)
+    # Călcâie
+    "LEFT_HEEL":      29,
+    "RIGHT_HEEL":     30,
+    # Picioare (vârf deget)
     "LEFT_FOOT_INDEX": 31,
     "RIGHT_FOOT_INDEX": 32,
 }
@@ -79,8 +82,10 @@ SKELETON_CONNECTIONS = [
     ("LEFT_KNEE",      "LEFT_ANKLE"),
     ("RIGHT_HIP",      "RIGHT_KNEE"),
     ("RIGHT_KNEE",     "RIGHT_ANKLE"),
-    ("LEFT_ANKLE",     "LEFT_FOOT_INDEX"),
-    ("RIGHT_ANKLE",    "RIGHT_FOOT_INDEX"),
+    ("LEFT_ANKLE",      "LEFT_HEEL"),
+    ("LEFT_HEEL",       "LEFT_FOOT_INDEX"),
+    ("RIGHT_ANKLE",     "RIGHT_HEEL"),
+    ("RIGHT_HEEL",      "RIGHT_FOOT_INDEX"),
 ]
 
 

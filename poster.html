@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RunAnalyzer — Poster licență</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --header: #0f4c5c;
+      --header-light: #1a6b7a;
+      --accent: #00c896;
+      --accent-soft: rgba(0, 200, 150, 0.12);
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --muted: #64748b;
+      --footer: #1e293b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "DM Sans", system-ui, sans-serif;
+      background: #cbd5e1;
+      color: var(--text);
+      padding: 12px;
+      line-height: 1.4;
+    }
+
+    .hint {
+      max-width: 920px;
+      margin: 0 auto 8px;
+      padding: 8px 12px;
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      color: #92400e;
+    }
+
+    .hint kbd {
+      background: #fef3c7;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.85em;
+    }
+
+    /* Poster compact — încape pe ecran la zoom 100% (~920×580) */
+    .poster {
+      width: 920px;
+      max-width: calc(100vw - 24px);
+      margin: 0 auto;
+      height: auto;
+      max-height: calc(100vh - 56px);
+      background: var(--bg);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Editare: click pe text */
+    [contenteditable="true"]:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+
+    .header {
+      background: linear-gradient(135deg, var(--header) 0%, var(--header-light) 100%);
+      color: white;
+      padding: 14px 20px 12px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .header h1 {
+      font-family: "Outfit", sans-serif;
+      font-size: 1.65rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 2px;
+    }
+
+    .header .subtitle {
+      font-size: 0.78rem;
+      opacity: 0.92;
+      font-weight: 500;
+      line-height: 1.3;
+    }
+
+    .meta {
+      text-align: right;
+      font-size: 0.72rem;
+      line-height: 1.45;
+      opacity: 0.95;
+    }
+
+    .meta .line { display: block; }
+
+    .body {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      padding: 12px 16px 10px;
+      min-height: 0;
+    }
+
+    .col { display: flex; flex-direction: column; gap: 8px; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      flex-shrink: 0;
+    }
+
+    .card.accent {
+      background: var(--accent-soft);
+      border-color: rgba(0, 200, 150, 0.35);
+    }
+
+    .card h2 {
+      font-family: "Outfit", sans-serif;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--header);
+      margin-bottom: 6px;
+      padding-bottom: 4px;
+      border-bottom: 2px solid var(--accent);
+    }
+
+    .card p, .card li {
+      font-size: 0.7rem;
+      color: var(--text);
+    }
+
+    .card ul {
+      margin: 4px 0 0 14px;
+    }
+
+    .card li { margin-bottom: 2px; }
+
+    /* Pipeline orizontal — mai compact */
+    .pipeline {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 4px 0;
+    }
+
+    .pipe-step {
+      text-align: center;
+      padding: 5px 8px;
+      background: white;
+      border: 1.5px solid var(--header);
+      border-radius: 6px;
+      font-size: 0.62rem;
+      font-weight: 600;
+    }
+
+    .pipe-step.highlight { border-color: var(--accent); }
+
+    .pipe-arrow {
+      color: var(--accent);
+      font-size: 0.75rem;
+      line-height: 1;
+    }
+
+    .tech-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .tag {
+      font-size: 0.58rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: var(--header);
+      color: white;
+    }
+
+    .tag.alt { background: var(--accent); color: #0f172a; }
+
+    /* O singură captură aplicație */
+    .shot-main {
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      background: #f1f5f9;
+      min-height: 100px;
+      max-height: 140px;
+      overflow: hidden;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .shot-main img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: absolute;
+      inset: 0;
+    }
+
+    .shot-label {
+      font-size: 0.65rem;
+      color: var(--muted);
+      font-weight: 600;
+      z-index: 1;
+      position: absolute;
+      bottom: 6px;
+      left: 8px;
+      background: rgba(255,255,255,0.92);
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    .shot-main:not(.has-img) {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .shot-main:not(.has-img) .shot-label {
+      position: static;
+    }
+
+    .metrics-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .metrics-list li {
+      padding: 3px 0 3px 16px;
+      position: relative;
+      font-size: 0.68rem;
+    }
+
+    .metrics-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 7px;
+      height: 7px;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+
+    .footer {
+      background: var(--footer);
+      color: #e2e8f0;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.65rem;
+      gap: 12px;
+    }
+
+    .footer .keywords { color: #94a3b8; }
+
+    @media print {
+      body { background: white; padding: 0; }
+      .hint { display: none; }
+      .poster { box-shadow: none; width: 100%; max-width: none; }
+    }
+  </style>
+</head>
+<body>
+
+ 
+  <article class="poster" id="poster">
+
+    <header class="header">
+      <div>
+        <h1 contenteditable="true">RUNANALYZER</h1>
+        <p class="subtitle" contenteditable="true">Sistem de analiză a tehnicii de alergare folosind viziune artificială</p>
+      </div>
+      <div class="meta">
+        <span class="line" contenteditable="true">Student: Nedelea Cezara Andreea</span>
+        <span class="line" contenteditable="true">Coordonator: Miclea Vlad Cristian</span>
+        <span class="line" contenteditable="true">Universitatea Tehnică din Cluj-Napoca • 2026</span>
+      </div>
+    </header>
+
+    <main class="body">
+
+      <!-- Coloana 1 -->
+      <div class="col">
+        <section class="card">
+          <h2 contenteditable="true">1. Problema </h2>
+          <p contenteditable="true">
+            Analiza tehnicii de alergare este adesea subiectivă și greu de repetat între evaluatori.
+            Soluția propusă extrage automat informații din videoclipuri obișnuite, fără echipament specializat.
+          </p>
+          <ul>
+            <li contenteditable="true">feedback accesibil pentru sportivi amatori</li>
+            <li contenteditable="true">metrici reproductibile</li>
+            <li contenteditable="true">bază pentru monitorizare în timp</li>
+          </ul>
+        </section>
+
+        <section class="card">
+          <h2 contenteditable="true">2. Obiective</h2>
+          <p contenteditable="true"><strong>Principal:</strong> aplicație care analizează automat tehnica de alergare din video.</p>
+          <ul>
+            <li contenteditable="true">Pose estimation (MediaPipe)</li>
+            <li contenteditable="true">Keypoints: umăr, cot, șold, genunchi, gleznă</li>
+            <li contenteditable="true">Parametri biomecanici per frame</li>
+            <li contenteditable="true">Vizualizare web (Streamlit)</li>
+          </ul>
+        </section>
+
+        <section class="card accent">
+          <h2 contenteditable="true">8. Contribuții</h2>
+          <ul>
+            <li contenteditable="true">Pipeline video → pose → biomecanică → UI</li>
+            <li contenteditable="true">Metrici + filtre de calitate a datelor</li>
+            <li contenteditable="true">Interfață web pentru testare practică</li>
+          </ul>
+        </section>
+      </div>
+
+      <!-- Coloana 2 -->
+      <div class="col">
+        <section class="card">
+          <h2 contenteditable="true">3. Arhitectură & Tehnologii</h2>
+          <p contenteditable="true">Procesare frame cu frame, export video adnotat și grafice temporale.</p>
+          <div class="tech-tags">
+            <span class="tag">Python</span>
+            <span class="tag">OpenCV</span>
+            <span class="tag alt">MediaPipe</span>
+            <span class="tag">NumPy</span>
+            <span class="tag">Plotly</span>
+            <span class="tag alt">Streamlit</span>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2 contenteditable="true">Pipeline</h2>
+          <div class="pipeline">
+            <div class="pipe-step" contenteditable="true">Video</div>
+            <span class="pipe-arrow">→</span>
+            <div class="pipe-step" contenteditable="true">OpenCV</div>
+            <span class="pipe-arrow">→</span>
+            <div class="pipe-step highlight" contenteditable="true">MediaPipe</div>
+            <span class="pipe-arrow">→</span>
+            <div class="pipe-step highlight" contenteditable="true">Biomecanică</div>
+            <span class="pipe-arrow">→</span>
+            <div class="pipe-step" contenteditable="true">Streamlit</div>
+          </div>
+        </section>
+
+        <section class="card accent">
+          <h2 contenteditable="true">4. Metrici calculate</h2>
+          <ul class="metrics-list">
+            <li contenteditable="true">Unghi genunchi (stâng / drept)</li>
+            <li contenteditable="true">Înclinare trunchi</li>
+            <li contenteditable="true">Unghi coate</li>
+            <li contenteditable="true">Simetrie genunchi</li>
+            <li contenteditable="true">Step length</li>
+          </ul>
+        </section>
+      </div>
+
+      <!-- Coloana 3 -->
+      <div class="col">
+        <div class="shot-main" id="shot-app">
+          <img src="interfata.png" alt="" onerror="this.style.display='none'" onload="this.parentElement.classList.add('has-img')" />
+          <span class="shot-label" contenteditable="true">Aplicație — rezultate (Streamlit)</span>
+        </div>
+
+        <section class="card">
+          <h2 contenteditable="true">6. Rezultate & limitări</h2>
+          <ul>
+            <li contenteditable="true">Detecție pose + metrici biomecanice per frame</li>
+            <li contenteditable="true">Grafice filtrate (outlieri + smoothing)</li>
+            <li contenteditable="true">Limitări: single-person, ocluzii, 2D orientativ</li>
+          </ul>
+        </section>
+
+        <section class="card accent">
+          <h2 contenteditable="true">Concluzie</h2>
+          <p contenteditable="true">
+            Fezabilitate demonstrată pentru analiza tehnicii de alergare din video obișnuit,
+            cu extensii viitoare: feedback automat, faze de pas, scor compozit.
+          </p>
+        </section>
+      </div>
+
+    </main>
+
+    <footer class="footer">
+      
+      <span contenteditable="true">Lucrare de licență — sesiunea 2025-2026</span>
+    </footer>
+
+  </article>
+
+</body>
+</html>

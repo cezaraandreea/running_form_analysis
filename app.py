@@ -42,10 +42,6 @@ with st.sidebar:
         if st.button(label, use_container_width=True):
             st.session_state.page = page_key
 
-    st.markdown("---")
-    st.markdown("**Status sistem:**")
-    st.markdown("✅ MediaPipe loaded")
-    st.markdown("✅ OpenCV ready")
 
 # ── Router pagini ─────────────────────────────────────────────────────────────
 page = st.session_state.page

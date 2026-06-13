@@ -99,7 +99,12 @@ def main() -> None:
     print_stat("Trunk lean mean", mean_of([f.trunk_lean_angle for f in bio]), " deg")
     print_stat("Elbow angle left mean", mean_of([f.elbow_angle_left for f in bio]), " deg")
     print_stat("Elbow angle right mean", mean_of([f.elbow_angle_right for f in bio]), " deg")
-    print_stat("Knee symmetry mean", mean_of([f.knee_symmetry_diff for f in bio]), " deg")
+    print_stat("Diferenta L-R instantanee (medie)", mean_of([f.knee_symmetry_diff for f in bio]), " deg")
+
+    from src.gait_analysis import analyze_gait_phases
+    gait = analyze_gait_phases(result.pose_frames, result.bio_frames, fps=result.metadata.fps)
+    print_stat("Simetrie la contact", gait.phase_symmetry_contact_deg, " deg")
+    print(f"- Contacte estimate: stanga={len(gait.left_strikes)}, dreapta={len(gait.right_strikes)}")
     print_stat("Step length mean", mean_of([f.step_length for f in bio]), " norm")
     print_stat("Knee ROM proxy mean", mean_of([f.knee_rom_proxy for f in bio]), " norm")
 
