@@ -35,28 +35,90 @@ def _ensure_dirs() -> None:
 
 
 def home_page() -> None:
-    st.title("RunAnalyzer")
     st.markdown(
         """
-        **Analizează-ți tehnica de alergare** printr-un simplu videoclip filmat din lateral.
-
-        Aplicația detectează automat:
-        - unghiurile genunchilor și simetria la contactul cu solul
-        - ridicarea genunchiului (knee drive) și simetria acesteia
-        - tipul de aterizare: călcâi, mijlocul tălpii sau vârf
-        - supraalungirea pasului (overstriding)
-        - lungimea medie a pasului, cadența și oscilația verticală
-        - un scor general al tehnicii și recomandări personalizate
-        """
+        <div class="hero">
+            <h1>Analizează-ți<br>tehnica de alergare</h1>
+            <p>Încarcă un videoclip filmat din lateral și obține în câteva secunde
+            o analiză completă a biomecanicii tale — de la cadență și lungimea pasului
+            până la simetria genunchilor și tipul de aterizare.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
+
+    c1, c2, c3 = st.columns(3)
+    cards = [
+        ("📐", "Biomecanică completă",
+         "Unghiuri genunchi, trunchi și coate analizate cadru cu cadru pe tot parcursul filmării."),
+        ("⚖️", "Simetrie stânga–dreapta",
+         "Detectăm diferențele dintre piciorul stâng și drept la contact și la ridicarea genunchiului."),
+        ("📋", "Feedback personalizat",
+         "Scor general 0–100 și recomandări specifice bazate pe parametrii biomecanici măsurați."),
+    ]
+    for col, (icon, title, desc) in zip([c1, c2, c3], cards):
+        col.markdown(
+            f'<div class="feature-card"><div class="icon">{icon}</div>'
+            f'<h4>{title}</h4><p>{desc}</p></div>',
+            unsafe_allow_html=True,
+        )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    c4, c5, c6 = st.columns(3)
+    cards2 = [
+        ("👟", "Tip de aterizare",
+         "Identifică dacă alergătorul aterizează pe călcâi, mijlocul tălpii sau vârful piciorului."),
+        ("📏", "Lungime pas & cadență",
+         "Calculează lungimea medie a pasului în metri și cadența în pași pe minut."),
+        ("📄", "Export PDF",
+         "Descarcă un raport complet cu toate metricile și graficele analizei."),
+    ]
+    for col, (icon, title, desc) in zip([c4, c5, c6], cards2):
+        col.markdown(
+            f'<div class="feature-card"><div class="icon">{icon}</div>'
+            f'<h4>{title}</h4><p>{desc}</p></div>',
+            unsafe_allow_html=True,
+        )
+
+    st.markdown("<br>", unsafe_allow_html=True)
     st.info(
-        "**Cerințe video:** filmează din lateral, cu alergătorul vizibil complet în cadru "
+        "**Cerință video:** filmează din lateral, cu alergătorul complet vizibil în cadru "
         "și o singură persoană în imagine."
     )
+    if st.button("Începe analiza →", type="primary"):
+        st.session_state.page = "upload"
+        st.rerun()
+
+
+def _step_bar(active: int) -> None:
+    """Bara de progres cu 3 pași: 1=upload, 2=analiză, 3=rezultate."""
+    steps = ["Încarcă video", "Configurare", "Rezultate"]
+    cols = st.columns(len(steps))
+    for i, (col, label) in enumerate(zip(cols, steps)):
+        step_num = i + 1
+        if step_num < active:
+            color, dot = "#3fb950", "✓"
+        elif step_num == active:
+            color, dot = "#2f81f7", str(step_num)
+        else:
+            color, dot = "#30363d", str(step_num)
+        col.markdown(
+            f'<div style="display:flex;align-items:center;gap:8px;">'
+            f'<div style="width:24px;height:24px;border-radius:50%;background:{color};'
+            f'display:flex;align-items:center;justify-content:center;'
+            f'font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">{dot}</div>'
+            f'<span style="font-size:0.82rem;color:{"#e6edf3" if step_num <= active else "#6e7681"};'
+            f'font-weight:{"600" if step_num == active else "400"};">{label}</span>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+    st.markdown("<div style='margin-bottom:1.5rem'></div>", unsafe_allow_html=True)
 
 
 def upload_page() -> None:
     _ensure_dirs()
+    _step_bar(1)
     st.header("Încarcă videoclipul")
     uploaded_file = st.file_uploader(
         "Alege un fișier video (.mp4 / .avi / .mov)",
@@ -80,6 +142,7 @@ def upload_page() -> None:
 
 
 def analysis_page() -> None:
+    _step_bar(2)
     st.header("Detalii despre alergător")
     video_path = st.session_state.get("video_path")
     if not video_path:
@@ -140,6 +203,7 @@ def analysis_page() -> None:
 
 
 def results_page() -> None:
+    _step_bar(3)
     st.header("Rezultatele analizei")
     data = st.session_state.get("analysis_results")
     if not data:

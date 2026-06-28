@@ -1,19 +1,322 @@
-/* Stilizare simpla pentru RunAnalyzer */
+/* ── Google Fonts ───────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-.stApp {
-  background: linear-gradient(180deg, #0f1117 0%, #121826 100%);
-  color: #e6edf3;
+/* ── CSS variables ──────────────────────────────────────────────────────── */
+:root {
+  --bg:          #0d1117;
+  --surface:     #161b22;
+  --surface-2:   #21262d;
+  --border:      #30363d;
+  --accent:      #2f81f7;
+  --accent-dim:  rgba(47,129,247,0.12);
+  --text-1:      #e6edf3;
+  --text-2:      #8b949e;
+  --text-3:      #6e7681;
+  --success:     #3fb950;
+  --warning:     #d29922;
+  --error:       #f85149;
+  --radius:      10px;
 }
 
-h1, h2, h3 {
-  color: #f4f8ff;
+/* ── Hide Streamlit chrome ──────────────────────────────────────────────── */
+#MainMenu,
+footer,
+[data-testid="stToolbar"],
+[data-testid="stDecoration"],
+[data-testid="stStatusWidget"] { display: none !important; }
+
+/* ── Global ─────────────────────────────────────────────────────────────── */
+html, body, [class*="css"] {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.stApp {
+  background: var(--bg);
+  color: var(--text-1);
+}
+
+/* ── Sidebar ────────────────────────────────────────────────────────────── */
+[data-testid="stSidebar"] {
+  background: var(--surface) !important;
+  border-right: 1px solid var(--border) !important;
+}
+
+[data-testid="stSidebar"] > div:first-child {
+  padding-top: 1.5rem;
+}
+
+/* Nav buttons inside sidebar */
+[data-testid="stSidebar"] .stButton > button {
+  background: transparent;
+  border: none;
+  color: var(--text-2);
+  font-size: 0.9rem;
+  font-weight: 400;
+  text-align: left;
+  padding: 0.55rem 1rem;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+  width: 100%;
+}
+
+[data-testid="stSidebar"] .stButton > button:hover {
+  background: var(--surface-2);
+  color: var(--text-1);
+  border: none;
+}
+
+[data-testid="stSidebar"] hr {
+  border-color: var(--border);
+  margin: 0.75rem 0;
+}
+
+/* ── Typography ─────────────────────────────────────────────────────────── */
+h1 {
+  font-size: 2rem !important;
+  font-weight: 700 !important;
+  color: var(--text-1) !important;
+  letter-spacing: -0.4px;
+  line-height: 1.2;
+}
+
+h2 {
+  font-size: 1.3rem !important;
+  font-weight: 600 !important;
+  color: var(--text-1) !important;
+  letter-spacing: -0.2px;
+}
+
+h3 {
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+  color: var(--text-2) !important;
+}
+
+/* ── Metric cards ───────────────────────────────────────────────────────── */
+[data-testid="metric-container"] {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.25rem;
+  transition: border-color 0.2s;
+}
+
+[data-testid="metric-container"]:hover {
+  border-color: var(--accent);
+}
+
+[data-testid="stMetricLabel"] {
+  color: var(--text-2) !important;
+  font-size: 0.8rem !important;
+  font-weight: 500 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 [data-testid="stMetricValue"] {
-  color: #00c896;
+  color: var(--text-1) !important;
+  font-size: 1.7rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.5px;
 }
 
-.stButton > button {
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+[data-testid="stMetricDelta"] {
+  color: var(--text-3) !important;
+  font-size: 0.8rem !important;
+}
+
+/* ── Buttons ────────────────────────────────────────────────────────────── */
+.stButton > button,
+.stDownloadButton > button {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  letter-spacing: 0.01em;
+}
+
+/* Primary */
+.stButton > button[kind="primary"],
+.stDownloadButton > button {
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  padding: 0.55rem 1.25rem;
+}
+
+.stButton > button[kind="primary"]:hover,
+.stDownloadButton > button:hover {
+  background: #388bfd;
+  box-shadow: 0 0 0 3px rgba(47,129,247,0.25);
+  border: none;
+}
+
+/* Secondary */
+.stButton > button[kind="secondary"] {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-1);
+}
+
+.stButton > button[kind="secondary"]:hover {
+  background: #2d333b;
+  border-color: #8b949e;
+}
+
+/* ── File uploader ──────────────────────────────────────────────────────── */
+[data-testid="stFileUploader"] {
+  background: var(--surface);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 0.5rem;
+  transition: border-color 0.2s;
+}
+
+[data-testid="stFileUploader"]:hover {
+  border-color: var(--accent);
+}
+
+/* ── Expanders ──────────────────────────────────────────────────────────── */
+[data-testid="stExpander"] {
+  background: var(--surface);
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+  margin-bottom: 0.5rem;
+}
+
+[data-testid="stExpander"] summary {
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--text-1);
+}
+
+/* ── Alerts / info boxes ────────────────────────────────────────────────── */
+[data-testid="stAlert"] {
+  border-radius: var(--radius);
+  border-left-width: 3px;
+  font-size: 0.9rem;
+}
+
+/* ── Dividers ───────────────────────────────────────────────────────────── */
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.5rem 0;
+}
+
+/* ── Progress bar ───────────────────────────────────────────────────────── */
+[data-testid="stProgressBar"] > div > div > div > div {
+  background: var(--accent);
+}
+
+/* ── Inputs (number, select) ────────────────────────────────────────────── */
+[data-testid="stNumberInput"] input,
+[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
+  background: var(--surface-2) !important;
+  border-color: var(--border) !important;
+  color: var(--text-1) !important;
+  border-radius: 6px !important;
+  font-family: 'Inter', sans-serif;
+}
+
+/* ── Section header helper class ────────────────────────────────────────── */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 1.5rem 0 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-header span {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-1);
+  letter-spacing: -0.1px;
+}
+
+/* ── Feature cards (home page) ──────────────────────────────────────────── */
+.feature-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  height: 100%;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.feature-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.feature-card .icon {
+  font-size: 1.6rem;
+  margin-bottom: 0.6rem;
+}
+
+.feature-card h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-1) !important;
+  margin: 0 0 0.4rem;
+}
+
+.feature-card p {
+  font-size: 0.82rem;
+  color: var(--text-2);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── Hero section (home page) ───────────────────────────────────────────── */
+.hero {
+  padding: 2.5rem 0 2rem;
+}
+
+.hero h1 {
+  font-size: 2.8rem !important;
+  font-weight: 700 !important;
+  background: linear-gradient(135deg, #e6edf3 0%, #8b949e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.75rem;
+}
+
+.hero p {
+  font-size: 1.05rem;
+  color: var(--text-2);
+  max-width: 600px;
+  line-height: 1.6;
+  margin-bottom: 0;
+}
+
+/* ── Step indicator (upload/analysis flow) ──────────────────────────────── */
+.step-indicator {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 1.5rem;
+}
+
+.step {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--surface-2);
+}
+
+.step.active {
+  background: var(--accent);
+}
+
+.step.done {
+  background: var(--success);
+}
+
+/* ── Spinner ────────────────────────────────────────────────────────────── */
+[data-testid="stSpinner"] {
+  color: var(--text-2) !important;
 }
