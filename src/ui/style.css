@@ -1,29 +1,42 @@
 /* ── Google Fonts ───────────────────────────────────────────────────────── */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* ── CSS variables ──────────────────────────────────────────────────────── */
+/* ── Design tokens ──────────────────────────────────────────────────────── */
 :root {
-  --bg:          #0d1117;
-  --surface:     #161b22;
-  --surface-2:   #21262d;
-  --border:      #30363d;
-  --accent:      #2f81f7;
-  --accent-dim:  rgba(47,129,247,0.12);
-  --text-1:      #e6edf3;
-  --text-2:      #8b949e;
-  --text-3:      #6e7681;
-  --success:     #3fb950;
-  --warning:     #d29922;
-  --error:       #f85149;
+  --bg:          #0d0d14;
+  --surface:     #13111f;
+  --surface-2:   #1e1b2e;
+  --border:      #2d2a40;
+  --border-2:    #3d3a55;
+
+  --accent:      #8b5cf6;
+  --accent-2:    #a78bfa;
+  --accent-dim:  rgba(139, 92, 246, 0.12);
+  --accent-glow: rgba(139, 92, 246, 0.28);
+
+  --text-1:      #ece8f5;
+  --text-2:      #9b93b8;
+  --text-3:      #6b6388;
+
+  --success:     #34d399;
+  --warning:     #fbbf24;
+  --error:       #f87171;
+
   --radius:      10px;
+  --radius-sm:   6px;
 }
 
-/* ── Hide Streamlit chrome ──────────────────────────────────────────────── */
+/* ── Hide / match Streamlit chrome ─────────────────────────────────────── */
 #MainMenu,
 footer,
 [data-testid="stToolbar"],
 [data-testid="stDecoration"],
 [data-testid="stStatusWidget"] { display: none !important; }
+
+[data-testid="stHeader"] {
+  background: var(--bg) !important;
+  border-bottom: none !important;
+}
 
 /* ── Global ─────────────────────────────────────────────────────────────── */
 html, body, [class*="css"] {
@@ -33,6 +46,11 @@ html, body, [class*="css"] {
 .stApp {
   background: var(--bg);
   color: var(--text-1);
+}
+
+.main .block-container {
+  padding-top: 0.5rem !important;
+  padding-bottom: 2rem !important;
 }
 
 /* ── Sidebar ────────────────────────────────────────────────────────────── */
@@ -45,17 +63,18 @@ html, body, [class*="css"] {
   padding-top: 1.5rem;
 }
 
-/* Nav buttons inside sidebar */
+/* Inactive nav buttons */
 [data-testid="stSidebar"] .stButton > button {
   background: transparent;
   border: none;
   color: var(--text-2);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 400;
   text-align: left;
-  padding: 0.55rem 1rem;
-  border-radius: 6px;
-  transition: background 0.15s, color 0.15s;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  border-left: 2px solid transparent;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
   width: 100%;
 }
 
@@ -63,6 +82,7 @@ html, body, [class*="css"] {
   background: var(--surface-2);
   color: var(--text-1);
   border: none;
+  border-left: 2px solid var(--border-2);
 }
 
 [data-testid="stSidebar"] hr {
@@ -80,7 +100,7 @@ h1 {
 }
 
 h2 {
-  font-size: 1.3rem !important;
+  font-size: 1.25rem !important;
   font-weight: 600 !important;
   color: var(--text-1) !important;
   letter-spacing: -0.2px;
@@ -106,23 +126,23 @@ h3 {
 }
 
 [data-testid="stMetricLabel"] {
-  color: var(--text-2) !important;
-  font-size: 0.8rem !important;
+  color: var(--text-3) !important;
+  font-size: 0.75rem !important;
   font-weight: 500 !important;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
 }
 
 [data-testid="stMetricValue"] {
   color: var(--text-1) !important;
-  font-size: 1.7rem !important;
+  font-size: 1.65rem !important;
   font-weight: 700 !important;
   letter-spacing: -0.5px;
 }
 
 [data-testid="stMetricDelta"] {
   color: var(--text-3) !important;
-  font-size: 0.8rem !important;
+  font-size: 0.78rem !important;
 }
 
 /* ── Buttons ────────────────────────────────────────────────────────────── */
@@ -130,8 +150,8 @@ h3 {
 .stDownloadButton > button {
   font-family: 'Inter', sans-serif;
   font-weight: 500;
-  font-size: 0.9rem;
-  border-radius: 6px;
+  font-size: 0.88rem;
+  border-radius: var(--radius-sm);
   transition: all 0.15s ease;
   letter-spacing: 0.01em;
 }
@@ -147,8 +167,8 @@ h3 {
 
 .stButton > button[kind="primary"]:hover,
 .stDownloadButton > button:hover {
-  background: #388bfd;
-  box-shadow: 0 0 0 3px rgba(47,129,247,0.25);
+  background: #7c3aed;
+  box-shadow: 0 0 0 3px var(--accent-glow);
   border: none;
 }
 
@@ -160,8 +180,61 @@ h3 {
 }
 
 .stButton > button[kind="secondary"]:hover {
-  background: #2d333b;
-  border-color: #8b949e;
+  background: var(--surface-2);
+  border-color: var(--border-2);
+  color: var(--text-1);
+}
+
+/* ── Form inputs ────────────────────────────────────────────────────────── */
+
+/* Containerul BaseWeb (are borderul vizibil) */
+[data-testid="stTextInput"] [data-baseweb="input"],
+[data-testid="stNumberInput"] [data-baseweb="input"],
+[data-testid="stTextArea"] [data-baseweb="textarea"],
+[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
+  background: var(--surface-2) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+  transition: border-color 0.15s !important;
+}
+
+/* Focus: border mov pe container */
+[data-testid="stTextInput"] [data-baseweb="input"]:focus-within,
+[data-testid="stNumberInput"] [data-baseweb="input"]:focus-within,
+[data-testid="stTextArea"] [data-baseweb="textarea"]:focus-within {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px var(--accent-dim) !important;
+}
+
+/* Input-ul interior — fără border propriu */
+[data-testid="stTextInput"] input,
+[data-testid="stNumberInput"] input,
+[data-testid="stTextArea"] textarea {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  color: var(--text-1) !important;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.88rem !important;
+}
+
+/* Iconița ochi la câmpul parolă */
+[data-testid="stTextInput"] button {
+  color: var(--text-2) !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Form labels */
+[data-testid="stTextInput"] label,
+[data-testid="stNumberInput"] label,
+[data-testid="stSelectbox"] label,
+[data-testid="stTextArea"] label {
+  color: var(--text-2) !important;
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.01em;
 }
 
 /* ── File uploader ──────────────────────────────────────────────────────── */
@@ -183,19 +256,111 @@ h3 {
   border: 1px solid var(--border) !important;
   border-radius: var(--radius) !important;
   margin-bottom: 0.5rem;
+  overflow: hidden;
 }
 
 [data-testid="stExpander"] summary {
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: var(--text-1);
+  padding: 0.75rem 1rem;
 }
 
-/* ── Alerts / info boxes ────────────────────────────────────────────────── */
+[data-testid="stExpander"] summary:hover {
+  background: var(--surface-2);
+}
+
+/* ── Alerts ─────────────────────────────────────────────────────────────── */
 [data-testid="stAlert"] {
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   border-left-width: 3px;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
+}
+
+/* ── Tabs ───────────────────────────────────────────────────────────────── */
+[data-testid="stTabs"] [data-baseweb="tab-list"] {
+  /* eliminăm border-ul nostru — BaseWeb are propriul border; dubla linie vine din ambele */
+  border-bottom: none !important;
+  gap: 0;
+}
+
+[data-testid="stTabs"] [data-baseweb="tab"] {
+  background: transparent !important;
+  color: var(--text-2) !important;
+  font-size: 0.88rem !important;
+  font-weight: 500 !important;
+  padding: 0.6rem 1.25rem !important;
+  border-bottom: 2px solid transparent !important;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+[data-testid="stTabs"] [data-baseweb="tab"]:hover {
+  color: var(--text-1) !important;
+}
+
+[data-testid="stTabs"] [aria-selected="true"] {
+  color: var(--accent-2) !important;
+  border-bottom-color: var(--accent) !important;
+  background: transparent !important;
+}
+
+/* Linia de fundal a tab-urilor (track-ul BaseWeb) → violet */
+[data-testid="stTabs"] [data-baseweb="tab-highlight"] {
+  background-color: var(--accent) !important;
+  height: 2px !important;
+}
+
+[data-testid="stTabs"] [data-baseweb="tab-border"] {
+  background-color: var(--border) !important;
+  height: 1px !important;
+}
+
+/* ── Form submit buttons ────────────────────────────────────────────────── */
+[data-testid="stFormSubmitButton"] > button {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 0.88rem;
+  border-radius: var(--radius-sm);
+  background: var(--accent) !important;
+  border: none !important;
+  color: #fff !important;
+  padding: 0.55rem 1.25rem;
+  transition: all 0.15s ease;
+  width: 100%;
+}
+
+[data-testid="stFormSubmitButton"] > button:hover {
+  background: #7c3aed !important;
+  box-shadow: 0 0 0 3px var(--accent-glow) !important;
+}
+
+/* ── Navigare pagini — fixată în header-ul Streamlit ────────────────────── */
+
+/* Marker-ul e invizibil — servește doar ca ancoră CSS */
+[data-testid="stMarkdown"]:has(#nav-marker) {
+  display: none !important;
+}
+
+/* Coloanele cu butoane nav → fixed în zona header-ului */
+[data-testid="stMarkdown"]:has(#nav-marker) + [data-testid="stHorizontalBlock"] {
+  position: fixed !important;
+  top: 0.55rem !important;
+  left: 248px !important;   /* lățimea sidebar Streamlit */
+  right: 0 !important;
+  z-index: 99999 !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 1.5rem !important;
+  margin: 0 !important;
+}
+
+/* Butoanele nav — compacte */
+[data-testid="stMarkdown"]:has(#nav-marker) + [data-testid="stHorizontalBlock"] .stButton > button {
+  font-size: 0.76rem !important;
+  padding: 0.18rem 0.65rem !important;
+  height: auto !important;
+  min-height: unset !important;
+  line-height: 1.5 !important;
 }
 
 /* ── Dividers ───────────────────────────────────────────────────────────── */
@@ -207,34 +372,7 @@ hr {
 
 /* ── Progress bar ───────────────────────────────────────────────────────── */
 [data-testid="stProgressBar"] > div > div > div > div {
-  background: var(--accent);
-}
-
-/* ── Inputs (number, select) ────────────────────────────────────────────── */
-[data-testid="stNumberInput"] input,
-[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
-  background: var(--surface-2) !important;
-  border-color: var(--border) !important;
-  color: var(--text-1) !important;
-  border-radius: 6px !important;
-  font-family: 'Inter', sans-serif;
-}
-
-/* ── Section header helper class ────────────────────────────────────────── */
-.section-header {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin: 1.5rem 0 0.75rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.section-header span {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--text-1);
-  letter-spacing: -0.1px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
 }
 
 /* ── Feature cards (home page) ──────────────────────────────────────────── */
@@ -244,7 +382,7 @@ hr {
   border-radius: var(--radius);
   padding: 1.25rem 1.5rem;
   height: 100%;
-  transition: border-color 0.2s, transform 0.2s;
+  transition: border-color 0.2s, transform 0.15s;
 }
 
 .feature-card:hover {
@@ -253,12 +391,12 @@ hr {
 }
 
 .feature-card .icon {
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   margin-bottom: 0.6rem;
 }
 
 .feature-card h4 {
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 600;
   color: var(--text-1) !important;
   margin: 0 0 0.4rem;
@@ -268,7 +406,7 @@ hr {
   font-size: 0.82rem;
   color: var(--text-2);
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 /* ── Hero section (home page) ───────────────────────────────────────────── */
@@ -279,7 +417,7 @@ hr {
 .hero h1 {
   font-size: 2.8rem !important;
   font-weight: 700 !important;
-  background: linear-gradient(135deg, #e6edf3 0%, #8b949e 100%);
+  background: linear-gradient(135deg, var(--text-1) 0%, var(--accent-2) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -287,14 +425,31 @@ hr {
 }
 
 .hero p {
-  font-size: 1.05rem;
+  font-size: 1rem;
   color: var(--text-2);
   max-width: 600px;
-  line-height: 1.6;
+  line-height: 1.65;
   margin-bottom: 0;
 }
 
-/* ── Step indicator (upload/analysis flow) ──────────────────────────────── */
+/* ── Nav item — active state ─────────────────────────────────────────────── */
+.nav-active {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  border-left: 2px solid var(--accent);
+  background: var(--accent-dim);
+  margin: 2px 0;
+}
+
+.nav-active span {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--accent-2);
+}
+
+/* ── Step indicator ─────────────────────────────────────────────────────── */
 .step-indicator {
   display: flex;
   gap: 0.4rem;
@@ -308,15 +463,17 @@ hr {
   background: var(--surface-2);
 }
 
-.step.active {
-  background: var(--accent);
-}
-
-.step.done {
-  background: var(--success);
-}
+.step.active { background: var(--accent); }
+.step.done   { background: var(--success); }
 
 /* ── Spinner ────────────────────────────────────────────────────────────── */
 [data-testid="stSpinner"] {
   color: var(--text-2) !important;
+}
+
+/* ── Previne inchiderea accidentala a sidebar ────────────────────────────── */
+[data-testid="stSidebarCollapseButton"],
+[data-testid="collapsedControl"],
+[data-testid="stSidebarCollapsedControl"] {
+  display: none !important;
 }

@@ -9,10 +9,12 @@ import subprocess
 
 import streamlit as st
 
-from src.analysis import Severity
-from src.report import generate_pdf_report
-from src.video_processor import VideoProcessor
-from src.visualization import (
+from src.services.analysis import Severity
+from src.services.email_sender import EmailConfigError, is_email_configured, send_analysis_email
+from src.persistence.history import get_analysis_detail, get_user_analyses, save_analysis
+from src.services.report import generate_pdf_report
+from src.services.video_processor import VideoProcessor
+from src.pipeline.visualization import (
     plot_elbow_angles,
     plot_foot_strike_chart,
     plot_knee_angles,
@@ -91,6 +93,24 @@ def home_page() -> None:
         st.rerun()
 
 
+def _nav(back_label: str, back_page: str, forward_label: str | None = None, forward_page: str | None = None) -> None:
+    """Header bar de navigare cu butoane mici în colțurile paginii."""
+    st.markdown('<span id="nav-marker"></span>', unsafe_allow_html=True)
+    if forward_label:
+        c_back, _, c_fwd = st.columns([2, 7, 2])
+    else:
+        c_back, _ = st.columns([2, 9])
+    with c_back:
+        if st.button(f"← {back_label}", key=f"nb_{back_page}_{forward_label}"):
+            st.session_state.page = back_page
+            st.rerun()
+    if forward_label and forward_page:
+        with c_fwd:
+            if st.button(f"{forward_label} →", key=f"nf_{forward_page}", type="primary"):
+                st.session_state.page = forward_page
+                st.rerun()
+
+
 def _step_bar(active: int) -> None:
     """Bara de progres cu 3 pași: 1=upload, 2=analiză, 3=rezultate."""
     steps = ["Încarcă video", "Configurare", "Rezultate"]
@@ -98,17 +118,17 @@ def _step_bar(active: int) -> None:
     for i, (col, label) in enumerate(zip(cols, steps)):
         step_num = i + 1
         if step_num < active:
-            color, dot = "#3fb950", "✓"
+            color, dot = "#34d399", "✓"
         elif step_num == active:
-            color, dot = "#2f81f7", str(step_num)
+            color, dot = "#8b5cf6", str(step_num)
         else:
-            color, dot = "#30363d", str(step_num)
+            color, dot = "#2d2a40", str(step_num)
         col.markdown(
             f'<div style="display:flex;align-items:center;gap:8px;">'
-            f'<div style="width:24px;height:24px;border-radius:50%;background:{color};'
+            f'<div style="width:22px;height:22px;border-radius:50%;background:{color};'
             f'display:flex;align-items:center;justify-content:center;'
-            f'font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">{dot}</div>'
-            f'<span style="font-size:0.82rem;color:{"#e6edf3" if step_num <= active else "#6e7681"};'
+            f'font-size:10px;font-weight:700;color:#fff;flex-shrink:0;">{dot}</div>'
+            f'<span style="font-size:0.82rem;color:{"#ece8f5" if step_num <= active else "#6b6388"};'
             f'font-weight:{"600" if step_num == active else "400"};">{label}</span>'
             f'</div>',
             unsafe_allow_html=True,
@@ -118,6 +138,7 @@ def _step_bar(active: int) -> None:
 
 def upload_page() -> None:
     _ensure_dirs()
+    _nav("Acasă", "home")
     _step_bar(1)
     st.header("Încarcă videoclipul")
     uploaded_file = st.file_uploader(
@@ -142,6 +163,7 @@ def upload_page() -> None:
 
 
 def analysis_page() -> None:
+    _nav("Înapoi la upload", "upload")
     _step_bar(2)
     st.header("Detalii despre alergător")
     video_path = st.session_state.get("video_path")
@@ -203,12 +225,28 @@ def analysis_page() -> None:
 
 
 def results_page() -> None:
+    _nav("Configurare", "analysis", "Analiză nouă", "upload")
     _step_bar(3)
     st.header("Rezultatele analizei")
     data = st.session_state.get("analysis_results")
     if not data:
         st.warning("Nu există încă rezultate. Rulează mai întâi analiza.")
         return
+
+    # ── Salvare automata (o singura data per analiza, doar pt. utilizatori autentificati) ──
+    user = st.session_state.get("user")
+    if user and not st.session_state.get("analysis_saved", False):
+        processing = data["processing"]
+        if processing.analysis_result:
+            save_analysis(
+                user_id=user["id"],
+                video_filename=st.session_state.get("video_path", ""),
+                analysis_result=processing.analysis_result,
+                height_cm=st.session_state.get("runner_height_cm", 175),
+                runner_sex=st.session_state.get("runner_sex", "Masculin"),
+            )
+            st.session_state.analysis_saved = True
+            st.toast("Analiză salvată în contul tău.", icon="✅")
 
     processing  = data["processing"]
     gait        = processing.gait_analysis
@@ -349,8 +387,158 @@ def results_page() -> None:
         type="primary",
     )
 
+    # ── Trimite pe email ──────────────────────────────────────────────────────
+    st.divider()
+    st.subheader("Trimite raportul pe email")
+
+    if not is_email_configured():
+        st.info(
+            "Trimiterea prin email nu este configurată. "
+            "Adaugă secțiunea `[email]` în `.streamlit/secrets.toml` pentru a activa această funcție.",
+            icon="ℹ️",
+        )
+    else:
+        user        = st.session_state.get("user")
+        default_email = user["email"] if user else ""
+
+        with st.form("email_form"):
+            email_to = st.text_input(
+                "Adresă email destinatar",
+                value=default_email,
+                placeholder="exemplu@gmail.com",
+            )
+            send_btn = st.form_submit_button(
+                "Trimite raportul PDF", use_container_width=True
+            )
+
+        if send_btn:
+            if not email_to or "@" not in email_to:
+                st.error("Introdu o adresă de email validă.")
+            else:
+                analysis    = processing.analysis_result or {}
+                stats       = analysis.get("statistics", {})
+                score_val   = analysis.get("score")
+                pdf_fname   = f"RunAnalyzer_{__import__('datetime').date.today().strftime('%Y%m%d')}.pdf"
+
+                with st.spinner(f"Se trimite emailul către {email_to}..."):
+                    try:
+                        send_analysis_email(
+                            to_email    = email_to,
+                            pdf_bytes   = pdf_bytes,
+                            score       = score_val,
+                            stats       = stats,
+                            runner_sex  = runner_sex,
+                            pdf_filename= pdf_fname,
+                        )
+                        st.success(f"Raportul a fost trimis cu succes la **{email_to}**.")
+                    except EmailConfigError as exc:
+                        st.error(f"Eroare configurare email: {exc}")
+                    except Exception as exc:
+                        st.error(f"Trimiterea a eșuat: {exc}")
+
     st.divider()
     if st.button("Analizează alt videoclip", use_container_width=True):
-        st.session_state.page = "upload"
+        st.session_state.page             = "upload"
         st.session_state.analysis_results = None
+        st.session_state.analysis_saved   = False
+        st.rerun()
+
+
+# ── Pagina Istoric ────────────────────────────────────────────────────────────
+
+def history_page() -> None:
+    _nav("Acasă", "home", "Analiză nouă", "upload")
+    st.header("Istoricul analizelor tale")
+
+    user = st.session_state.get("user")
+    if not user:
+        st.info("Conectează-te pentru a vedea istoricul analizelor.")
+        return
+
+    analyses = get_user_analyses(user["id"])
+
+    if not analyses:
+        st.markdown(
+            """
+            <div style="text-align:center;padding:3rem 1rem;color:#6b6388;">
+                <div style="font-size:2.5rem;margin-bottom:0.75rem;">📊</div>
+                <p style="font-size:1rem;">Nu ai nicio analiză salvată încă.</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        if st.button("Începe prima analiză →", type="primary"):
+            st.session_state.page = "upload"
+            st.rerun()
+        return
+
+    st.caption(f"{len(analyses)} {'analiză' if len(analyses) == 1 else 'analize'} salvate")
+
+    _SEVERITY_COLOR = {"error": "#f87171", "warning": "#fbbf24", "ok": "#34d399"}
+    _SEVERITY_ICON  = {"error": "🔴", "warning": "🟡", "ok": "🟢"}
+
+    for row in analyses:
+        # Formatare data
+        try:
+            from datetime import datetime
+            dt = datetime.fromisoformat(row["created_at"])
+            date_str = dt.strftime("%d %b %Y, %H:%M")
+        except Exception:
+            date_str = row["created_at"][:16]
+
+        score       = row.get("score")
+        cadence     = row.get("cadence_spm")
+        vo          = row.get("vertical_oscillation_cm")
+        foot_strike = row.get("foot_strike_type") or "—"
+        video_name  = row.get("video_filename") or "necunoscut"
+        sym         = row.get("symmetry_contact_deg")
+
+        score_str = f"{int(score)}" if score is not None else "—"
+
+        with st.expander(f"{date_str}  |  Scor: {score_str}/100  |  {video_name}"):
+            # Metrici rapide
+            c1, c2, c3, c4 = st.columns(4)
+            c1.metric("Scor", f"{score_str}/100")
+            c2.metric("Cadență", f"{cadence:.0f} p/min" if cadence else "—")
+            c3.metric("Oscilație vert.", f"{vo:.1f} cm" if vo else "—")
+            c4.metric("Aterizare", foot_strike)
+
+            if sym is not None:
+                st.caption(f"Simetrie la contact: **{sym:.1f}°**")
+
+            runner_info = (
+                f"{row.get('runner_height_cm', '?')} cm · "
+                f"{row.get('runner_sex', '?')}"
+            )
+            st.caption(f"Alergător: {runner_info}")
+
+            # Feedback
+            import json
+            try:
+                feedback = json.loads(row.get("feedback_json") or "[]")
+            except Exception:
+                feedback = []
+
+            if feedback:
+                st.markdown("**Feedback:**")
+                for item in feedback:
+                    sev   = item.get("severity", "ok")
+                    icon  = _SEVERITY_ICON.get(sev, "·")
+                    color = _SEVERITY_COLOR.get(sev, "#ece8f5")
+                    msg   = item.get("message", "")
+                    cat   = item.get("category", "")
+                    detail = item.get("detail", "")
+                    st.markdown(
+                        f"<div style='padding:4px 0;font-size:0.88rem;'>"
+                        f"{icon} <strong style='color:{color}'>{cat}</strong> — {msg}"
+                        + (f"<br><span style='color:#6b6388;margin-left:1.5rem;font-size:0.82rem;'>"
+                           f"→ {detail}</span>" if detail else "")
+                        + "</div>",
+                        unsafe_allow_html=True,
+                    )
+
+    st.divider()
+    if st.button("Analiză nouă →", type="primary"):
+        st.session_state.page           = "upload"
+        st.session_state.analysis_saved = False
         st.rerun()
